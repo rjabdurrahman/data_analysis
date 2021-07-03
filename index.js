@@ -22,7 +22,7 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 })
 
-app.get('/analyze_import', (req, res) => {
+app.get('/analyze_import/:target', (req, res) => {
   async function analyzeData() {
     let result = [];
     try {
@@ -31,14 +31,16 @@ app.get('/analyze_import', (req, res) => {
       for (user in users) {
         result.push({
           userId: user,
+          userName: users[user][0].TM_NAME,
+          teritory: users[user][0].TERITORY_NAME,
           q1_count: users[user].filter(x => x.q1).length,
           q4_count: users[user].filter(x => x.q4).length,
-          q4_7_days: users[user].filter(x => x.q4 == '7 days').length
+          q4_7_days: users[user].filter(x => x.q4 == '7 days').length,
+          target: req.params.target
         });
       }
       console.log('Total Data', data.length);
       console.log('Unique Users', result.length);
-      res.send('Done Again');
       insertResult(result);
     } catch (e) {
       console.log(e.message);
