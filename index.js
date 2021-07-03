@@ -49,6 +49,7 @@ app.get('/analyze_import/:target', (req, res) => {
 
   async function insertResult(data) {
     try {
+      await questionResult.remove({});
       await questionResult.insertMany(JSON.parse(JSON.stringify(data)));
       console.log('Inserted');
       res.send(`
