@@ -1,13 +1,20 @@
 const express = require('express');
 const app = express();
 const _ = require('lodash');
-const mongoose = require('mongoose');
-const db = mongoose.connection;
-mongoose.connect('mongodb://localhost:27017/testdb', { useNewUrlParser: true, useUnifiedTopology: true });
-db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', function () {
-  console.log('Connected!');
-});
+const MongoClient = require('mongodb').MongoClient;
+const mongoUrl = 'mongodb://localhost:27017';
+
+let reportCollection;
+let questionResult;
+MongoClient.connect(mongoUrl, {
+  useUnifiedTopology: true
+}, (err, client) => {
+  if (err) return console.error(err)
+  console.log('Connected to Database')
+  const db = client.db('testdb')
+  reportCollection = db.collection('final_report')
+  questionResult = db.collection('question_result')
+})
 
 app.listen(3000, () => console.log('Listening on http://localhost:3000'));
 
@@ -16,30 +23,31 @@ app.get('/', (req, res) => {
 })
 
 app.get('/analyze_import', (req, res) => {
-
-
   async function analyzeData() {
     let result = [];
-    const Row = require('./models/row');
-    let data = await Row.find({}).exec();
-    let users = _.groupBy(JSON.parse(JSON.stringify(data)), function (d) { return d.TM_USER_NAME });
-    for (user in users) {
-      result.push({
-        userId: user,
-        q1_count: users[user].filter(x => x.q1).length,
-        q4_count: users[user].filter(x => x.q4).length,
-        q4_7_days: users[user].filter(x => x.q4 == '7 days').length
-      });
+    try {
+      let data = await reportCollection.find({}).toArray();
+      let users = _.groupBy(JSON.parse(JSON.stringify(data)), function (d) { return d.TM_USER_NAME });
+      for (user in users) {
+        result.push({
+          userId: user,
+          q1_count: users[user].filter(x => x.q1).length,
+          q4_count: users[user].filter(x => x.q4).length,
+          q4_7_days: users[user].filter(x => x.q4 == '7 days').length
+        });
+      }
+      console.log('Total Data', data.length);
+      console.log('Unique Users', result.length);
+      res.send('Done Again');
+      insertResult(result);
+    } catch (e) {
+      console.log(e.message);
     }
-    // console.log('Total Data', data.length);
-    // console.log('Unique Users', result.length);
-    insertResult(result);
   }
 
-  const InsertRow = require('./models/insertRow');
-  function insertResult(data) {
+  async function insertResult(data) {
     try {
-      InsertRow.insertMany(JSON.parse(JSON.stringify(data)));
+      await questionResult.insertMany(JSON.parse(JSON.stringify(data)));
       console.log('Inserted');
       res.send(`
       <h1>Imported Successfully.</h1>
@@ -51,7 +59,4 @@ app.get('/analyze_import', (req, res) => {
   }
 
   analyzeData();
-
-
-
 })
