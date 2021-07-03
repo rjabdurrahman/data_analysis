@@ -1,0 +1,17 @@
+{
+  "name": "d_analysis",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fs": "0.0.1-security",
+    "lodash": "^4.17.21",
+    "mongoose": "^5.13.1"
+  }
+}
