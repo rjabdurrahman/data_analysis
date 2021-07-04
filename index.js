@@ -36,6 +36,8 @@ app.get('/analyze_import/:target', (req, res) => {
           q1_count: users[user].filter(x => x.q1).length,
           q4_count: users[user].filter(x => x.q4).length,
           q4_7_days: users[user].filter(x => x.q4 == '7 days').length,
+          q9_count: users[user].filter(x => x.q9).length,
+          q9_sum: users[user].filter(x => x.q9).map(x => Number(x.q9)).reduce((sum, cv) => sum += Number(cv), 0),
           target: req.params.target
         });
       }
